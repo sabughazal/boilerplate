@@ -33,6 +33,8 @@ assert os.path.exists(args.config), "Configuration file does not exist!"
 assert os.path.exists(args.dataset_root), "Dataset root does not exist!"
 if args.resume:
     assert os.path.exists(args.checkpoint), "Checkpoint does not exist!"
+if args.run_name.strip() == "":
+    args.run_name = datetime.strftime(datetime.now(), "%Y%m%d_%H%M%S")
 
 ## CONFIGURATION
 cfg = get_cfg_defaults()
