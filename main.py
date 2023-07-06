@@ -208,7 +208,6 @@ def main(args, cfg):
             eval_loss = evaluate(model, eval_loader, criterion, DEVICE, eval_losses)
             if USE_WANDB:
                 wandb.log({"eval_loss": eval_loss, "epoch": epoch})
-            log("INFO: Eval loss: {:.4f}; Best eval loss: {:.4f}.".format(eval_loss, best_eval_loss))
 
             if scheduler:
                 scheduler.step()
@@ -219,6 +218,8 @@ def main(args, cfg):
                 best_eval_loss = eval_loss
                 epochs_since_best = 0
                 log("INFO: Best checkpoint saved at epoch {}!".format(epoch+1))
+                
+            log("INFO: Eval loss: {:.4f}; Best eval loss: {:.4f}.".format(eval_loss, best_eval_loss))
 
         if (epoch+1) % cfg.CHECKPOINT.SAVE_EVERY == 0 or (epoch+1) == cfg.TRAIN.MAX_EPOCH:
             save_checkpoint(cfg, model, optimizer, epoch+1, best_eval_loss, output_path=OUTPUT_PATH, scheduler=scheduler)
