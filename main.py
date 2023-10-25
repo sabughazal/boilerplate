@@ -268,14 +268,14 @@ def main(args):
                 epochs_since_best = 0
                 log.info("Best checkpoint saved at epoch {}!".format(epoch+1))
                 
-            log("INFO: Eval loss: {:.4f}; Best eval loss: {:.4f}.".format(eval_loss, best_eval_loss))
+            log.info("Eval loss: {:.4f}; Best eval loss: {:.4f}.".format(eval_loss, best_eval_loss))
 
         if (epoch+1) % cfg.CHECKPOINT.SAVE_EVERY == 0 or (epoch+1) == cfg.TRAIN.MAX_EPOCH:
             save_checkpoint(cfg, model, optimizer, epoch+1, best_eval_loss, output_path=OUTPUT_PATH, scheduler=scheduler)
             log.info("Checkpoint saved at epoch {}!".format(epoch+1))
 
         if args.patience and epochs_since_best >= args.patience:
-            log("INFO: Early stopping triggered; eval loss did not go lower than {:.4f} in the last {} epochs.".format(best_eval_loss, args.patience))
+            log.info("Early stopping triggered; eval loss did not go lower than {:.4f} in the last {} epochs.".format(best_eval_loss, args.patience))
             save_checkpoint(cfg, model, optimizer, epoch+1, best_eval_loss, output_path=OUTPUT_PATH, scheduler=scheduler)
             log.info("Checkpoint saved at epoch {}!".format(epoch+1))
             break
