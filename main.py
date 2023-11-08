@@ -21,53 +21,53 @@ def parse_args():
     parser = argparse.ArgumentParser(description="")
 
     parser.add_argument(
-        '--config', 
-        type=str, 
-        required=True, 
+        '--config',
+        type=str,
+        required=True,
         help="The path to the config file.")
     parser.add_argument(
-        '--dataset_root', 
-        type=str, 
-        required=True, 
+        '--dataset_root',
+        type=str,
+        required=True,
         help="The path to the dataset root directory.")
-    
+
     # optional arguments
     parser.add_argument(
-        '--run_name', 
-        type=str, 
-        default=datetime.strftime(datetime.now(), "%Y%m%d_%H%M%S"), 
+        '--run_name',
+        type=str,
+        default=datetime.strftime(datetime.now(), "%Y%m%d_%H%M%S"),
         help="The run name to use as a label in file names and in W&B.")
     parser.add_argument(
-        '--output_folder', 
-        type=str, 
-        default="runs", 
+        '--output_folder',
+        type=str,
+        default="runs",
         help="The name of the folder to store information about the runs.")
     parser.add_argument(
-        '--patience', 
-        type=int, 
-        default=None, 
+        '--patience',
+        type=int,
+        default=None,
         help="Stop the training if the evaluation loss does not decrease in this many epochs.")
     parser.add_argument(
-        '--gpu', 
-        type=str, 
-        default="cuda", 
+        '--gpu',
+        type=str,
+        default="cuda",
         help="The label of the GPU to use.")
     parser.add_argument(
-        '--checkpoint', 
-        type=str, 
-        default=None, 
+        '--checkpoint',
+        type=str,
+        default=None,
         help="The path to the checkpoint to resume from.")
     parser.add_argument(
-        '--resume', 
-        action="store_true", 
+        '--resume',
+        action="store_true",
         help="A flag to resume from a given checkpoint.")
-    
+
     return parser.parse_args()
 
 
 
 # prepare datasets and dataloaders
-# 
+#
 def build_dataloaders(cfg, dataset_root):
     train_dataset = DATASETS[cfg.DATASET.NAME](dataset_root, 'train', cfg=cfg)
     eval_dataset = DATASETS[cfg.DATASET.NAME](dataset_root, 'eval', cfg=cfg)
@@ -80,9 +80,9 @@ def build_dataloaders(cfg, dataset_root):
 
 
 # prepare the model
-# 
+#
 def build_model(cfg, device='cpu'):
-    return MODELS[cfg.MODEL.NAME].to(device)
+    return MODELS[cfg.MODEL.NAME](cfg).to(device)
 
 def build_optimizer(cfg, model):
     if cfg.OPTIMIZER.NAME == "SGD":
@@ -110,7 +110,7 @@ def build_criterion(cfg, device='cpu'):
 
 
 # training function
-# 
+#
 def train_one_epoch(model, dataloader, criterion, optimizer, device='cpu', progress=None, train_losses=[]):
     """"""
     losses_sum = 0
@@ -128,7 +128,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device='cpu', progr
         optimizer.step()
 
         losses_sum += loss.item()
-    
+
     train_loss = losses_sum / len(dataloader)
     train_losses.append(train_loss)
 
@@ -137,7 +137,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device='cpu', progr
 
 
 # evaluation function
-# 
+#
 def evaluate(model, dataloader, criterion, device='cpu', eval_losses=[]):
     """"""
     losses_sum = 0
@@ -160,7 +160,7 @@ def evaluate(model, dataloader, criterion, device='cpu', eval_losses=[]):
 
 
 # main training loop
-# 
+#
 def main(args):
     assert os.path.exists(args.config), "Configuration file does not exist!"
     assert os.path.exists(args.dataset_root), "Dataset root does not exist!"
@@ -181,9 +181,9 @@ def main(args):
     os.makedirs(OUTPUT_PATH, exist_ok=False)
     shutil.copy(args.config, os.path.join(OUTPUT_PATH, "config.yml"))
 
-    
+
     # prepare logger
-    # 
+    #
     log_format = logging.Formatter(
         "%(asctime)s [%(levelname)s] %(name)s ## %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S"
@@ -208,7 +208,7 @@ def main(args):
 
 
     # set up weights and biases
-    # 
+    #
     if USE_WANDB:
         import wandb
         wandb.init(
@@ -217,7 +217,7 @@ def main(args):
             config={**vars(args),**cfg,},
         )
 
-    train_loader, eval_loader, train_dataset, eval_dataset = build_dataloaders(cfg)
+    train_loader, eval_loader, train_dataset, eval_dataset = build_dataloaders(cfg, args.dataset_root)
     log.info("Training dataset has {:,} samples.".format(len(train_dataset)))
     log.info("Evaluation dataset has {:,} samples.".format(len(eval_dataset)))
 
@@ -233,7 +233,7 @@ def main(args):
 
 
     # main training loop
-    # 
+    #
     start_epoch = 0
     if args.resume:
         start_epoch = load_checkpoint(args.checkpoint, model, optimizer, scheduler, DEVICE)
@@ -243,9 +243,9 @@ def main(args):
     best_eval_loss = 1e10
     epochs_since_best = 0
     for epoch in range(start_epoch, cfg.TRAIN.MAX_EPOCH):
-        
+
         model.train()
-        train_loss, _ = train_one_epoch(model, train_loader, criterion, optimizer, DEVICE, 
+        train_loss, _ = train_one_epoch(model, train_loader, criterion, optimizer, DEVICE,
                 progress=(epoch, cfg.TRAIN.MAX_EPOCH), train_losses=train_losses)
 
         if USE_WANDB:
@@ -267,7 +267,7 @@ def main(args):
                 best_eval_loss = eval_loss
                 epochs_since_best = 0
                 log.info("Best checkpoint saved at epoch {}!".format(epoch+1))
-                
+
             log.info("Eval loss: {:.4f}; Best eval loss: {:.4f}.".format(eval_loss, best_eval_loss))
 
         if (epoch+1) % cfg.CHECKPOINT.SAVE_EVERY == 0 or (epoch+1) == cfg.TRAIN.MAX_EPOCH:
