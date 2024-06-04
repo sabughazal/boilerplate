@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from configs import get_cfg_defaults
 from models import MODELS
 from datasets import DATASETS
-from utils import load_checkpoint
+from boilerplate.utils.utils import load_checkpoint
 
 ## ARGUMENTS
 parser = argparse.ArgumentParser(description="Test wavefronts decoding.")
@@ -51,7 +51,7 @@ log("INFO: Using device: {}".format(DEVICE))
 
 
 # prepare datasets and dataloaders
-# 
+#
 def build_dataloader(cfg):
     dataset = DATASETS[cfg.DATASET.NAME](args.dataset_root, 'test', cfg=cfg)
     dataloader =  DataLoader(dataset=dataset, batch_size=cfg.TEST.BATCH_SIZE, shuffle=True)
@@ -59,13 +59,13 @@ def build_dataloader(cfg):
 
 
 # prepare the model
-# 
+#
 def build_model(cfg, device):
     return MODELS[cfg.MODEL.NAME](cfg).to(device)
 
 
 # testing function
-# 
+#
 def test(model, dataloader):
     """"""
     all_outputs = None
@@ -77,7 +77,7 @@ def test(model, dataloader):
             targets = targets.to(DEVICE)
 
             outputs = model(inputs)
-            
+
             if all_outputs is None:
                 all_outputs = outputs.cpu().numpy()
                 all_targets = targets.cpu().numpy()
@@ -90,7 +90,7 @@ def test(model, dataloader):
 
 
 # main
-# 
+#
 def main(args, cfg):
 
     test_loader, test_dataset = build_dataloader(cfg)
@@ -106,7 +106,7 @@ def main(args, cfg):
 
     print("Labels shape:", all_targets.shape)
     print("Predictions shape:", all_outputs.shape)
-    
+
     # calculate and print metrics
     loss_per_sample = np.mean((all_targets - all_outputs)**2, axis=1)
     mean_sq_error = np.mean(loss_per_sample)

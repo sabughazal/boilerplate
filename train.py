@@ -8,12 +8,13 @@ import logging
 
 from tqdm import tqdm
 from datetime import datetime
+
 from configs import get_cfg_defaults
 from torch.utils.data import DataLoader
-from utils import save_checkpoint, load_checkpoint
+from sabgbp.utils.utils import save_checkpoint, load_checkpoint
 
-from models import MODELS
-from datasets import DATASETS
+from sabgbp.models import MODELS
+from sabgbp.datasets import DATASETS
 
 
 def parse_args():
@@ -26,19 +27,19 @@ def parse_args():
         required=True,
         help="The path to the config file.")
     parser.add_argument(
-        '--dataset_root',
+        '--dataset-root',
         type=str,
         required=True,
         help="The path to the dataset root directory.")
 
     # optional arguments
     parser.add_argument(
-        '--run_name',
+        '--run-name',
         type=str,
         default=datetime.strftime(datetime.now(), "%Y%m%d_%H%M%S"),
         help="The run name to use as a label in file names and in W&B.")
     parser.add_argument(
-        '--output_folder',
+        '--output-folder',
         type=str,
         default="runs",
         help="The name of the folder to store information about the runs.")
@@ -177,6 +178,7 @@ def main(args):
     ## VARIABLES
     DEVICE = args.gpu if torch.cuda.is_available() else 'cpu'
     USE_WANDB = cfg.WANDB.PROJECT_NAME != ""
+    USE_TENSORBOARD = cfg.TENSORBOARD.PROJECT_NAME != ""
     OUTPUT_PATH = os.path.join(args.output_folder, args.run_name)
     os.makedirs(OUTPUT_PATH, exist_ok=False)
     shutil.copy(args.config, os.path.join(OUTPUT_PATH, "config.yml"))
@@ -217,6 +219,17 @@ def main(args):
             config={**vars(args),**cfg,},
         )
 
+
+    # set up tensorboard
+    #
+    if USE_TENSORBOARD:
+        from torch.utils.tensorboard import SummaryWriter
+        tb_writer = SummaryWriter(log_dir="tb", comment=f"{cfg.TENSORBOARD.PROJECT_NAME}:{args.run_name}")
+        # config={**vars(args),**cfg,}
+
+
+    # set up dataloaders
+    #
     train_loader, eval_loader, train_dataset, eval_dataset = build_dataloaders(cfg, args.dataset_root)
     log.info("Training dataset has {:,} samples.".format(len(train_dataset)))
     log.info("Evaluation dataset has {:,} samples.".format(len(eval_dataset)))
@@ -250,6 +263,8 @@ def main(args):
 
         if USE_WANDB:
             wandb.log({"train_loss": train_loss, "epoch": epoch})
+        if USE_TENSORBOARD:
+            tb_writer.add_scalar("train_loss", train_loss, epoch)
 
         epochs_since_best += 1
         if (epoch+1) % cfg.EVAL.RUN_EVERY == 0 or (epoch+1) == cfg.TRAIN.MAX_EPOCH:
@@ -257,6 +272,8 @@ def main(args):
             eval_loss = evaluate(model, eval_loader, criterion, DEVICE, eval_losses)
             if USE_WANDB:
                 wandb.log({"eval_loss": eval_loss, "epoch": epoch})
+            if USE_TENSORBOARD:
+                tb_writer.add_scalar("eval_loss", eval_loss, epoch)
 
             if scheduler:
                 scheduler.step()

@@ -1,4 +1,4 @@
-python main.py^
+python train.py^
     --config ""^
     --dataset-root ""^
     --run-name "run001"^
@@ -7,4 +7,3 @@ python main.py^
     --gpu "cuda"^
     --resume^
     --checkpoint ""^
-    
