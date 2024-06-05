@@ -225,6 +225,7 @@ def main(args):
     if USE_TENSORBOARD:
         from torch.utils.tensorboard import SummaryWriter
         tb_writer = SummaryWriter(log_dir="tb", comment=f"{cfg.TENSORBOARD.PROJECT_NAME}:{args.run_name}")
+        # writer = tf.train.SummaryWriter('%s/%s' % (FLAGS.log_dir, run_var), sess.graph_def)
         # config={**vars(args),**cfg,}
 
 
