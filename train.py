@@ -2,6 +2,7 @@
 Sultan Abughazal
 """
 import os
+import json
 import torch
 import shutil
 import logging
@@ -11,10 +12,10 @@ from datetime import datetime
 
 from configs import get_cfg_defaults
 from torch.utils.data import DataLoader
-from sabgbp.utils.utils import save_checkpoint, load_checkpoint
 
 from sabgbp.models import MODELS
 from sabgbp.datasets import DATASETS
+from sabgbp.utils import save_checkpoint, load_checkpoint
 
 
 def parse_args():
@@ -76,7 +77,7 @@ def build_dataloaders(cfg, dataset_root):
     train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.TRAIN.BATCH_SIZE, shuffle=cfg.TRAIN.SHUFFLE)
     eval_loader = DataLoader(dataset=eval_dataset, batch_size=cfg.EVAL.BATCH_SIZE, shuffle=cfg.EVAL.SHUFFLE)
 
-    return train_loader, eval_loader, train_dataset, eval_dataset
+    return train_loader, eval_loader
 
 
 
@@ -224,26 +225,31 @@ def main(args):
     #
     if USE_TENSORBOARD:
         from torch.utils.tensorboard import SummaryWriter
-        tb_writer = SummaryWriter(log_dir="tb", comment=f"{cfg.TENSORBOARD.PROJECT_NAME}:{args.run_name}")
-        # writer = tf.train.SummaryWriter('%s/%s' % (FLAGS.log_dir, run_var), sess.graph_def)
-        # config={**vars(args),**cfg,}
+        tb_writer = SummaryWriter(
+            log_dir=os.path.join("tb", f"{args.run_name}"),
+            comment=f"{cfg.TENSORBOARD.PROJECT_NAME}:{args.run_name}"
+        )
+        tb_writer.add_text("Configuration", f"{json.dumps({**vars(args),**cfg,}, indent=4)}")
 
 
-    # set up dataloaders
+    # set up model
     #
-    train_loader, eval_loader, train_dataset, eval_dataset = build_dataloaders(cfg, args.dataset_root)
-    log.info("Training dataset has {:,} samples.".format(len(train_dataset)))
-    log.info("Evaluation dataset has {:,} samples.".format(len(eval_dataset)))
-
     model = build_model(cfg, DEVICE)
-    optimizer = build_optimizer(cfg, model)
-    scheduler = build_scheduler(cfg, optimizer)
-    criterion = build_criterion(cfg, DEVICE)
-
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log.info("The model has {:,} trainable parameters.".format(num_params))
     log.info("The model has the following structure:\n{}".format(model))
 
+
+    # set up dataloaders
+    #
+    train_loader, eval_loader = build_dataloaders(cfg, args.dataset_root)
+    log.info("Training dataset has {:,} samples.".format(len(train_loader.dataset)))
+    log.info("Evaluation dataset has {:,} samples.".format(len(eval_loader.dataset)))
+
+
+    optimizer = build_optimizer(cfg, model)
+    scheduler = build_scheduler(cfg, optimizer)
+    criterion = build_criterion(cfg, DEVICE)
 
 
     # main training loop
@@ -297,6 +303,10 @@ def main(args):
             save_checkpoint(cfg, model, optimizer, epoch+1, best_eval_loss, output_path=OUTPUT_PATH, scheduler=scheduler)
             log.info("Checkpoint saved at epoch {}!".format(epoch+1))
             break
+
+    if USE_TENSORBOARD:
+        tb_writer.flush()
+        tb_writer.close()
 
 
 
