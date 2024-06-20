@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-class CNN(nn.Module):
+class AcmeModel(nn.Module):
     def __init__(self, input_size, num_classes):
         pass
 
