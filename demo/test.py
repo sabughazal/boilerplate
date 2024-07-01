@@ -54,8 +54,8 @@ log("INFO: Using device: {}".format(DEVICE))
 #
 def build_dataloader(cfg):
     dataset = DATASETS[cfg.DATASET.NAME](args.dataset_root, 'test', cfg=cfg)
-    dataloader =  DataLoader(dataset=dataset, batch_size=cfg.TEST.BATCH_SIZE, shuffle=True)
-    return dataloader, dataset
+    dataloader = DataLoader(dataset=dataset, batch_size=cfg.TEST.BATCH_SIZE, shuffle=True)
+    return dataloader
 
 
 # prepare the model
@@ -93,8 +93,8 @@ def test(model, dataloader):
 #
 def main(args, cfg):
 
-    test_loader, test_dataset = build_dataloader(cfg)
-    log("INFO: Testing dataset has {:,} samples.".format(len(test_dataset)))
+    test_loader = build_dataloader(cfg)
+    log("INFO: Testing dataset has {:,} samples.".format(len(test_loader.dataset)))
 
     model = build_model(cfg, DEVICE)
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
