@@ -7,7 +7,7 @@ def save_checkpoint(cfg, model, optimizer, epoch, best_eval_loss, output_path, s
     filename = "chkpt_ep{:.0f}.pt".format(epoch)
     if is_best:
         filename = "chkpt_best.pt"
-        
+
     os.makedirs(checkpoints_folder, exist_ok=True)
     torch.save({
         'epoch': epoch,
@@ -26,3 +26,6 @@ def load_checkpoint(p, model, optimizer=None, scheduler=None, device=None):
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
     epoch = checkpoint['epoch']
     return epoch
+
+def count_model_params(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
