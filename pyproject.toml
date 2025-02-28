@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+"bp_utils" = "utils"
+"bp_models" = "models"
+"bp_configs" = "configs"
+"bp_datasets" = "datasets"
+
+[tool.setuptools.package-data]
+myModule = ["*.yml"]
+
+[project]
+name = "bp"
+version = "1.0.0"
+readme = "README.md"
+dependencies = [
+
+]
+
+[project.urls]
+Homepage = "https://tii.ae"
+Repository = "https://github.com/tiiuae/"

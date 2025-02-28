@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from configs import get_cfg_defaults
 from models import MODELS
 from datasets import DATASETS
-from sabgbp.utils import load_checkpoint
+from bp.utils import load_checkpoint
 
 ## ARGUMENTS
 parser = argparse.ArgumentParser(description="Test wavefronts decoding.")

@@ -13,9 +13,9 @@ from datetime import datetime
 from configs import get_cfg_defaults
 from torch.utils.data import DataLoader
 
-from sabgbp_models import MODELS
-from sabgbp_datasets import DATASETS
-from sabgbp_utils import save_checkpoint, load_checkpoint
+from bp_models import MODELS
+from bp_datasets import DATASETS
+from bp_utils import save_checkpoint, load_checkpoint
 
 
 def parse_args():
