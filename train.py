@@ -3,8 +3,8 @@ Sultan Abughazal
 """
 import os
 import json
+import yaml
 import torch
-import shutil
 import logging
 
 from tqdm import tqdm
@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader
 from bp_models import MODELS
 from bp_datasets import DATASETS
 from bp_utils import save_checkpoint, load_checkpoint
+from bp_configs import get_cfg_defaults
 
 
 def parse_args():
@@ -102,6 +103,8 @@ def build_scheduler(cfg, optimizer):
 def build_criterion(cfg, device='cpu'):
     if cfg.OPTIMIZER.LOSS == "MSELoss":
         criterion = torch.nn.MSELoss()
+    if cfg.OPTIMIZER.LOSS == "NLLLoss":
+        criterion = torch.nn.NLLLoss()
     elif cfg.OPTIMIZER.LOSS == "CrossEntropyLoss":
         class_weights = None
         if len(cfg.OPTIMIZER.WEIGHTS):
@@ -123,7 +126,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device='cpu', progr
         targets = targets.to(device)
 
         optimizer.zero_grad()
-        outputs = model(inputs)
+        logits, outputs = model(inputs)
 
         loss = criterion(outputs, targets)
         loss.backward()
@@ -149,7 +152,7 @@ def evaluate(model, dataloader, criterion, device='cpu', eval_losses=[]):
             inputs = inputs.to(device)
             targets = targets.to(device)
 
-            outputs = model(inputs)
+            logits, outputs = model(inputs)
 
             loss = criterion(outputs, targets)
             losses_sum += loss.item()
@@ -182,7 +185,13 @@ def main(args):
     USE_TENSORBOARD = cfg.TENSORBOARD.PROJECT_NAME != ""
     OUTPUT_PATH = os.path.join(args.output_folder, args.run_name)
     os.makedirs(OUTPUT_PATH, exist_ok=False)
-    shutil.copy(args.config, os.path.join(OUTPUT_PATH, "config.yml"))
+
+    # store config in run directory
+    with open(os.path.join(OUTPUT_PATH, "config.yml"), 'w') as f:
+        yaml.safe_dump(yaml.safe_load(cfg.dump()), f, default_flow_style=False)
+    # store inline arguments in run directory
+    with open(os.path.join(OUTPUT_PATH, "arguments.yml"), 'w') as f:
+        yaml.safe_dump(vars(args), f, default_flow_style=False)
 
 
     # prepare logger
@@ -226,7 +235,7 @@ def main(args):
     if USE_TENSORBOARD:
         from torch.utils.tensorboard import SummaryWriter
         tb_writer = SummaryWriter(
-            log_dir=os.path.join("tb", f"{args.run_name}"),
+            log_dir=OUTPUT_PATH,
             comment=f"{cfg.TENSORBOARD.PROJECT_NAME}:{args.run_name}"
         )
         tb_writer.add_text("Configuration", f"{json.dumps({**vars(args),**cfg,}, indent=4)}")
