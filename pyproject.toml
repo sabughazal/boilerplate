@@ -16,7 +16,8 @@ name = "bp"
 version = "1.0.0"
 readme = "README.md"
 dependencies = [
-
+    "tqdm>=4.66.4",
+    "yacs>=0.1.8",
 ]
 
 [project.urls]
