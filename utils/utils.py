@@ -1,5 +1,8 @@
 import os
 import torch
+import numpy as np
+
+
 
 def save_checkpoint(cfg, model, optimizer, epoch, best_eval_loss, output_path, scheduler=None, is_best=False):
     checkpoints_folder = os.path.join(output_path, cfg.CHECKPOINT.OUTPUT_FOLDER)
@@ -29,3 +32,20 @@ def load_checkpoint(p, model, optimizer=None, scheduler=None, device=None):
 
 def count_model_params(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+def calc_class_weights(class_counts: list) -> np.ndarray:
+    if len(class_counts) == 1:
+        return np.array([1])
+    elif len(class_counts) == 2:
+        calc_binary_class_weights(class_counts)
+    elif len(class_counts) > 2:
+        calc_multi_class_weights(class_counts)
+
+def calc_binary_class_weights(class_counts: list) -> np.ndarray:
+    tot = sum(class_counts)
+    return np.array([tot/(c*2) for c in class_counts])
+
+def calc_multi_class_weights(class_counts: list) -> np.ndarray:
+    tot = sum(class_counts)
+    return np.array([tot/c for c in class_counts])
+
