@@ -60,7 +60,7 @@ def build_dataloader(cfg):
 
 # prepare the model
 #
-def build_model(cfg, device):
+def build_model(cfg, device='cpu'):
     return MODELS[cfg.MODEL.NAME](cfg).to(device)
 
 
@@ -76,7 +76,7 @@ def test(model, dataloader):
             inputs = inputs.to(DEVICE)
             targets = targets.to(DEVICE)
 
-            outputs = model(inputs)
+            logits, outputs = model(inputs)
 
             if all_outputs is None:
                 all_outputs = outputs.cpu().numpy()
