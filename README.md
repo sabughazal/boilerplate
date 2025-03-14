@@ -1,4 +1,4 @@
-# boilerplate
+# PyTorch Boilerplate
  A boilerplate for typical ML projects.
 
  ✅ **Configurable experiments that make it extremely easy (and traceable) to run different experiments with different models or different datasets.**
