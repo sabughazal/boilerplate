@@ -1,11 +1,15 @@
 # boilerplate
  A boilerplate for typical ML projects.
 
-    ✅ Configurable experiments that make it extremely easy (and traceable) to run different experiments with different models or different datasets.
-    ✅ Run logs that keep a record of every experiment with the configuration file, arguments and training logs.
-    ✅ Enable logging to tensorboard or WandB through the config file.
-    ✅ Early stopping, learning rate scheduling, storing and resuming from checkpoints, and all the good stuff.
-    ✅ It also has demo notebooks that make it easier for you to showcase qualitative results without duplicating code and causing inconsistency.
+ ✅ **Configurable experiments that make it extremely easy (and traceable) to run different experiments with different models or different datasets.**
+
+ ✅ **Run logs that keep a record of every experiment with the configuration file, arguments and training logs.**
+
+ ✅ **Enable logging to tensorboard or WandB through the config file.**
+
+ ✅ **Early stopping, learning rate scheduling, storing and resuming from checkpoints, and all the good stuff.**
+
+ ✅ **It also has demo notebooks that make it easier for you to showcase qualitative results without duplicating code and causing inconsistency.**
 
 See the detailed [features list](#features-list).
 
@@ -46,16 +50,13 @@ THe argument `-e` is for an editable install.
     ├── configs/
     │   ├── __init__.py
     │   ├── _defaults.py
-    │   ├── ...
-    │   └──
+    │   └── ...
     ├── datasets/
     │   ├── __init__.py
-    │   ├── ...
-    │   └──
+    │   └── ...
     ├── models/
     │   ├── __init__.py
-    │   ├── ...
-    │   └──
+    │   └── ...
     ├── utils/
     │   ├── __init__.py
     │   ├── ...
